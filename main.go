@@ -60,21 +60,46 @@ var bear_height = 25
 func draw_map(levelmap maps.MapData) {
     bear.Layer(ROOT)
     bear.BkColor(0x172b56ff)
-    bear.ClearArea(
-        0,
-        0,
-        int(MAP_WIDTH * float64(bear_width)),
-        int(MAP_HEIGHT * float64(bear_height)),
-    )
+    var view_width = int(MAP_WIDTH * float64(bear_width))
+    var view_height = int(MAP_HEIGHT * float64(bear_height))
+    bear.ClearArea(0, 0, view_width, view_height)
+
     bear.Layer(MAP_LAYER)
-    for y, row := range levelmap {
-        for x, tile := range row {
-            bear.Put(x, y, int(tile.Character))
+    var x_offset, y_offset int
+    var player_view_x, player_view_y = entities.Player.X, entities.Player.Y
+    var view_x_center, view_y_center = view_width/2, view_height/2
+    map_height, map_width := levelmap.Dimensions()
+    if player_view_x > view_x_center {
+        if entities.Player.X + view_x_center > map_width {
+            player_view_x = view_width - (map_width - entities.Player.X)
+        } else {
+            player_view_x = view_x_center
+        }
+        x_offset = entities.Player.X - player_view_x
+    }
+    if player_view_y > view_y_center {
+        if entities.Player.Y + view_y_center > map_height {
+            player_view_y = view_height - (map_height - entities.Player.Y)
+        } else {
+            player_view_y = view_y_center
+        }
+        y_offset = entities.Player.Y - player_view_y
+    }
+    var tile_y, tile_x int
+    for y := 0; y < view_height; y++ {
+        tile_y = y + y_offset
+        if y < map_height && y < len(levelmap[tile_y]) {
+            for x := 0; x < view_width; x++ {
+                tile_x = x + x_offset
+                if x < len(levelmap[tile_y])  {
+                    bear.Put(x, y, int(levelmap[tile_y][tile_x].Character))
+                }
+            }
         }
     }
     bear.Put(
-        entities.Player.X,
-        entities.Player.Y,
+        player_view_x,
+        player_view_y,
         int(entities.Player.Character),
     )
 }
@@ -149,7 +174,6 @@ func main() {
             bear.Read()
             bear_width = bear.State(bear.TK_WIDTH)
             bear_height = bear.State(bear.TK_HEIGHT)
-            fmt.Println(bear_width, bear_height)
         }
         draw_map(levelmap)
         draw_stats()
