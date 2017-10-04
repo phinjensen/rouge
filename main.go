@@ -3,10 +3,10 @@ package main
 import (
     "fmt"
 
-    bear "bearlibterminal"
+    bear "github.com/phinjensen/rouge/bearlibterminal"
 
-    "rogue/maps"
-    "rogue/entities"
+    "github.com/phinjensen/rouge/maps"
+    "github.com/phinjensen/rouge/entities"
 )
 
 var movement_keys = []int{

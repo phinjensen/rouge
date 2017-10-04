@@ -1,7 +1,7 @@
 package entities
 
 import (
-    "rogue/maps"
+    "github.com/phinjensen/rouge/maps"
 )
 func isValidMove(e Entity, levelmap maps.MapData) bool {
     return e.Y < len(levelmap) &&
