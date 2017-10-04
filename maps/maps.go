@@ -23,6 +23,17 @@ var tiles map[string]Tile = map[string]Tile{
 type GameTile struct {
     Tile
     Visible bool
+    Seen bool
+}
+
+func (t GameTile) Color() uint32 {
+    var color uint32 = 0xffffffff
+    if t.Visible {
+        color = 0xffffffff
+    } else {
+        color = 0x88ffffff
+    }
+    return color
 }
 
 type MapData [][]GameTile
@@ -44,7 +55,7 @@ func ParseMapFile() (MapData, error) {
 	for _, row := range strings.Split(mapstring, "\n") {
         var row_tiles []GameTile
 		for _, tile := range strings.Split(row, "") {
-			row_tiles = append(row_tiles, GameTile{tiles[tile], false})
+			row_tiles = append(row_tiles, GameTile{tiles[tile], false, false})
 		}
 		rows = append(rows, row_tiles)
 	}

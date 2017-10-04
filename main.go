@@ -75,6 +75,7 @@ func get_visible(levelmap maps.MapData) {
         var oy = float64(entities.Player.Y) + 0.5
         for j := 0; j < VIEW_DISTANCE; j++ {
             levelmap[int(oy)][int(ox)].Visible = true;
+            levelmap[int(oy)][int(ox)].Seen = true;
             if levelmap[int(oy)][int(ox)].Walkable == false {
                 break
             }
@@ -85,6 +86,9 @@ func get_visible(levelmap maps.MapData) {
 }
 
 func draw_map(levelmap maps.MapData) {
+    var original_color = uint32(bear.State(bear.TK_COLOR))
+    var original_bk_color = uint32(bear.State(bear.TK_BKCOLOR))
+
     bear.Layer(ROOT)
     bear.BkColor(0x172b56ff)
     var view_width = int(MAP_WIDTH * float64(bear_width))
@@ -92,49 +96,30 @@ func draw_map(levelmap maps.MapData) {
     bear.ClearArea(0, 0, view_width, view_height)
 
     bear.Layer(MAP_LAYER)
-    var x_offset, y_offset int
-    var player_view_x, player_view_y = entities.Player.X, entities.Player.Y
-    var view_x_center, view_y_center = view_width/2, view_height/2
-    map_height, map_width := levelmap.Dimensions()
-    if player_view_x > view_x_center {
-        if entities.Player.X + view_x_center > map_width {
-            player_view_x = view_width - (map_width - entities.Player.X)
-        } else {
-            player_view_x = view_x_center
-        }
-        x_offset = entities.Player.X - player_view_x
-    }
-    if player_view_y > view_y_center {
-        if entities.Player.Y + view_y_center > map_height {
-            player_view_y = view_height - (map_height - entities.Player.Y)
-        } else {
-            player_view_y = view_y_center
-        }
-        y_offset = entities.Player.Y - player_view_y
-    }
-    var tile_y, tile_x int
     for y := 0; y < view_height; y++ {
-        tile_y = y + y_offset
-        if y < map_height && y < len(levelmap[tile_y]) {
-            for x := 0; x < view_width; x++ {
-                tile_x = x + x_offset
-                if x < len(levelmap[tile_y])  {
-                    tile := levelmap[tile_y][tile_x]
-                    if tile.Visible {
-                        bear.Color(0xffff0000)
-                    } else {
-                        bear.Color(0xffffffff)
-                    }
-                    bear.Put(x, y, int(tile.Character))
-                }
+        map_y := entities.Player.Y - view_height/2 + y
+        if map_y < 0 || map_y >= len(levelmap) {
+            continue
+        }
+        for x := 0; x < view_width; x++ {
+            map_x := entities.Player.X - view_width/2 + x
+            if map_x < 0 || map_x >= len(levelmap[map_y]) {
+                continue
+            }
+            tile := levelmap[map_y][map_x]
+            if tile.Seen {
+                bear.Color(tile.Color())
+                bear.Put(x, y, int(tile.Character))
             }
         }
     }
     bear.Put(
-        player_view_x,
-        player_view_y,
+        view_width/2,
+        view_height/2,
         int(entities.Player.Character),
     )
+    bear.Color(original_color)
+    bear.BkColor(original_bk_color)
 }
 
 func draw_resource_bar(current, max, x, y int, full, empty uint32, message string) {
