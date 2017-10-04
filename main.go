@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "math"
 
     bear "github.com/phinjensen/rouge/bearlibterminal"
 
@@ -54,8 +55,34 @@ const STATS_LAYER = 6
 const MAP_WIDTH = .6
 const MAP_HEIGHT = .8
 
+const VIEW_DISTANCE = 6
+
 var bear_width = 80
 var bear_height = 25
+
+func get_visible(levelmap maps.MapData) {
+    // MapData.ParseMapFile() adds an empty array at the end (newline at end of file?)
+    // which makes this loop break when using map_height and map_width
+    for y := 0; y < len(levelmap); y++ {
+        for x := 0; x < len(levelmap[y]); x++ {
+            levelmap[y][x].Visible = false
+        }
+    }
+    for i := 0.0; i < 360.0; i++ {
+        var x = math.Cos(i * (math.Pi / 180.0))
+        var y = math.Sin(i * (math.Pi / 180.0))
+        var ox = float64(entities.Player.X) + 0.5
+        var oy = float64(entities.Player.Y) + 0.5
+        for j := 0; j < VIEW_DISTANCE; j++ {
+            levelmap[int(oy)][int(ox)].Visible = true;
+            if levelmap[int(oy)][int(ox)].Walkable == false {
+                break
+            }
+            ox += x
+            oy += y
+        }
+    }
+}
 
 func draw_map(levelmap maps.MapData) {
     bear.Layer(ROOT)
@@ -92,7 +119,13 @@ func draw_map(levelmap maps.MapData) {
             for x := 0; x < view_width; x++ {
                 tile_x = x + x_offset
                 if x < len(levelmap[tile_y])  {
-                    bear.Put(x, y, int(levelmap[tile_y][tile_x].Character))
+                    tile := levelmap[tile_y][tile_x]
+                    if tile.Visible {
+                        bear.Color(0xffff0000)
+                    } else {
+                        bear.Color(0xffffffff)
+                    }
+                    bear.Put(x, y, int(tile.Character))
                 }
             }
         }
@@ -175,6 +208,7 @@ func main() {
             bear_width = bear.State(bear.TK_WIDTH)
             bear_height = bear.State(bear.TK_HEIGHT)
         }
+        get_visible(levelmap)
         draw_map(levelmap)
         draw_stats()
         if bear.HasInput() {

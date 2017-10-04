@@ -20,7 +20,12 @@ var tiles map[string]Tile = map[string]Tile{
 
 // Map data
 
-type MapData [][]Tile
+type GameTile struct {
+    Tile
+    Visible bool
+}
+
+type MapData [][]GameTile
 
 func (m MapData) Dimensions() (int, int) {
     if len(m) > 0 {
@@ -37,9 +42,9 @@ func ParseMapFile() (MapData, error) {
 	var mapstring = string(data)
 	var rows MapData
 	for _, row := range strings.Split(mapstring, "\n") {
-		var row_tiles []Tile
+        var row_tiles []GameTile
 		for _, tile := range strings.Split(row, "") {
-			row_tiles = append(row_tiles, tiles[tile])
+			row_tiles = append(row_tiles, GameTile{tiles[tile], false})
 		}
 		rows = append(rows, row_tiles)
 	}
