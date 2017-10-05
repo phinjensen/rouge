@@ -113,6 +113,7 @@ func draw_map(levelmap maps.MapData) {
             }
         }
     }
+    bear.Color(0xffd8af5f)
     bear.Put(
         view_width/2,
         view_height/2,
